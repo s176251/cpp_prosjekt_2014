@@ -1,0 +1,38 @@
+Prosjektoppgave C++ 2014
+================
+
+####Martin(s176251) og Jonas(s176250)
+
+##Ide
+Å lage et peer-to-peer chatte-program i likhet med msn/skype/irc, etc., men serverløst.
+Så lenge to maskiner har programmet kjørende skal man kunne sende meldinger kun ved å skrive inn ip'en,
+evt. dele en "profil" generert av programmet som man deler via dropbox, etc.
+
+##Beskrivelse av hovedfunksjonaliteten
+
+####Minimumsmål
+* Skal kunne broadcaste meldinger på LAN og lytte på broadcastede meldinger.(ergo ingen ip nødvendig på samme nettverk) 
+* Skal kunne scanne LAN (pinge all iper) og deretter sjekke om de har programmet kjørende.
+    * Disse skal vises i en liste i programmet
+* Man skal kunne sende til _alle_, en gruppe eller èn.
+* Velge om man skal kommunisere via UDP eller TCP.
+* Ha ulike samtaler i ulike faner, el.l.
+* GUI i qt
+
+####Utvidede mål
+* Kommunisere via internet.
+* Lagre bruker med navn og ip, og mulighet for å endre/slette bruker.
+* Indikator "farge/lys" ved siden av en bruker som indikerer om vedkommende er "på".
+* Velge om meldingene skal krypteres eller ikke
+* Ha tjeneste/daemon kjørende(uavhengig av programmet) som "snapper"-opp tilsendte meldinger(valgfritt).
+* Mulighet for sending av meldinger utenom GUI.
+
+####BHAG (Big Hairy Audacious Goals)
+* VoIP (lite sannsynlig)
+* text-to-speech
+* mulighet 
+
+####Designmål
+1. Brukervennlighet(innenfor målgruppen aka. ikke bestemor.) 
+2. Effektivitet (men ikke på bekostning av brukervennlighet)
+3. Lett utvidbart (men ikke på bekostning av effektivitet)
