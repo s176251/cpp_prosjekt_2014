@@ -4,27 +4,27 @@ Prosjektoppgave C++ 2014
 ####Martin(s176251) og Jonas(s176250)
 
 ##Ide
-Å lage et peer-to-peer chatte-program i likhet med msn/skype/irc, etc., men serverløst.
-Så lenge to maskiner har programmet kjørende skal man kunne sende meldinger kun ved å skrive inn ip'en,
+ï¿½ lage et peer-to-peer chatte-program i likhet med msn/skype/irc, etc., men serverlï¿½st.
+Sï¿½ lenge to maskiner har programmet kjï¿½rende skal man kunne sende meldinger kun ved ï¿½ skrive inn ip'en,
 evt. dele en "profil" generert av programmet som man deler via dropbox, etc.
 
 ##Beskrivelse av hovedfunksjonaliteten
 
-####Minimumsmål
-* Skal kunne broadcaste meldinger på LAN og lytte på broadcastede meldinger.(ergo ingen ip nødvendig på samme nettverk) 
-* Skal kunne scanne LAN (pinge all iper) og deretter sjekke om de har programmet kjørende.
+####Minimumsmï¿½l
+* Skal kunne broadcaste meldinger pï¿½ LAN og lytte pï¿½ broadcastede meldinger.(ergo ingen ip nï¿½dvendig pï¿½ samme nettverk) 
+* Skal kunne scanne LAN (pinge all iper) og deretter sjekke om de har programmet kjï¿½rende.
     * Disse skal vises i en liste i programmet
-* Man skal kunne sende til _alle_, en gruppe eller èn.
+* Man skal kunne sende til _alle_, en gruppe eller ï¿½n.
 * Velge om man skal kommunisere via UDP eller TCP.
 * Ha ulike samtaler i ulike faner, el.l.
 * GUI i qt
 
-####Utvidede mål
+####Utvidede mï¿½l
 * Kommunisere via internet.
-* Lagre bruker med navn og ip, og mulighet for å endre/slette bruker.
-* Indikator "farge/lys" ved siden av en bruker som indikerer om vedkommende er "på".
+* Lagre bruker med navn og ip, og mulighet for ï¿½ endre/slette bruker.
+* Indikator "farge/lys" ved siden av en bruker som indikerer om vedkommende er "pï¿½".
 * Velge om meldingene skal krypteres eller ikke
-* Ha tjeneste/daemon kjørende(uavhengig av programmet) som "snapper"-opp tilsendte meldinger(valgfritt).
+* Ha tjeneste/daemon kjï¿½rende(uavhengig av programmet) som "snapper"-opp tilsendte meldinger(valgfritt).
 * Mulighet for sending av meldinger utenom GUI.
 
 ####BHAG (Big Hairy Audacious Goals)
@@ -32,7 +32,19 @@ evt. dele en "profil" generert av programmet som man deler via dropbox, etc.
 * text-to-speech
 * mulighet 
 
-####Designmål
-1. Brukervennlighet(innenfor målgruppen aka. ikke bestemor.) 
-2. Effektivitet (men ikke på bekostning av brukervennlighet)
-3. Lett utvidbart (men ikke på bekostning av effektivitet)
+####Designmï¿½l
+1. Brukervennlighet(innenfor mï¿½lgruppen aka. ikke bestemor.) 
+2. Effektivitet (men ikke pï¿½ bekostning av brukervennlighet)
+3. Lett utvidbart (men ikke pï¿½ bekostning av effektivitet)
+
+
+------
+Bra prosjekt - men: det blir utfordrende Ã¥ fÃ¥ dette til uten at det oppfattes som portscanning. Husk at pÃ¥ skolen er alle IP'er offentlige (selv de man fÃ¥r pÃ¥ trÃ¥dlÃ¸st nett) og hvis man da sniffer porter for Ã¥ sjekke om de har noe som lytter pÃ¥ en bestemt port blir det trÃ¸bbel. Det blir da ogsÃ¥ litt utfordrende for meg Ã¥ teste lÃ¸sningen, men jeg kan gjÃ¸re det ved Ã¥ sette opp to VM'er. 
+
+En alternativ lÃ¸sning kunne vÃ¦re at man mÃ¥ vite om IP'en eller url'en (bruk feks. dyndns) til den man vil chatte med, og at man sÃ¥ bare prÃ¸ver Ã¥ connecte. FÃ¥r man ikke kontakt vil forbindelsen bare time ut.
+
+Uansett et bra prosjekt, gÃ¥ videre med det.
+
+
+- Alfred
+
