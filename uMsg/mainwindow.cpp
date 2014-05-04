@@ -4,11 +4,25 @@
 #include "peer.h"
 #include "conversation.h"
 
-const int COLOR_RED = 1;
+const int CHANGE_NEW = 1;
+const QString APPLICATION_ICON = ":/images/images/icon.ico";
+const QString APPLICATION_ICON_RED = ":/images/images/red.ico";
+const QString RES_SMILEYS = ":/smileys/images/smileys/";
+const QString FORM_TAB = ":/Forms/tab.ui";
+const QString CONVO_TAB_TXT_ID = "txtTabConvo";
+const QString CONVO_TAB_MSG_ID = "txtTabMessage";
+const QString STR_SHOW = "Show";
+const QString STR_EXIT = "Exit";
+const QString STR_ADD_TO_CONVO = "Add to conversation";
+const QString STR_REMOVE = "Remove";
+const QString STR_BLOCK_UNBLK = "Block/Unblock";
+const QString DATE_FORMAT = "yyyy.MM.dd";
+const QString TIME_FORMAT = "HH.mm";
 
 /**
  * Constructor for MainWindow
  * Sets up the ui and main window for the application
+ * @brief MainWindow::MainWindow
  */
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -30,7 +44,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         controller->scanLan();
 }
 
-// Set-up additional ui elements
+/**
+ * Set-up additional ui elements
+ * @brief MainWindow::initializeUiElements
+ */
 void MainWindow::initializeUiElements()
 {
     ui->txtMessage->installEventFilter(this);
@@ -48,7 +65,7 @@ void MainWindow::initializeUiElements()
     smileys = new QList<QListWidgetItem*>;
     for (int i = 0; i < 40; ++i)
     {
-        QListWidgetItem* qlwi = new QListWidgetItem(QIcon(":/smileys/images/smileys/" + QString::number(i) + ".png"), "");
+        QListWidgetItem* qlwi = new QListWidgetItem(QIcon(RES_SMILEYS + QString::number(i) + ".png"), "");
         smileys->append(qlwi);
         ui->lstSmileys->addItem(qlwi);
     }
@@ -56,19 +73,25 @@ void MainWindow::initializeUiElements()
     createTray();
 }
 
-// Clears text from the currently selected tab
+/**
+ * Clears text from the currently selected tab
+ * @brief MainWindow::clearTab
+ */
 void MainWindow::clearTab()
 {
     if(ui->tabgrpConversations->currentIndex() == 0)
         ui->txtConvo->clear();
     else
     {
-        QTextEdit* txtConv = ui->tabgrpConversations->currentWidget()->findChild<QTextEdit*>("txtTabConvo");
+        QTextEdit* txtConv = ui->tabgrpConversations->currentWidget()->findChild<QTextEdit*>(CONVO_TAB_TXT_ID);
         txtConv->clear();
     }
 }
 
-// Prompts the user to input a nickname for him/herself. Default is computer username.
+/**
+ * Prompts the user to input a nickname for him/herself. Default is computer username.
+ * @brief MainWindow::setNickname
+ */
 void MainWindow::setNickname()
 {
     bool ok;
@@ -82,23 +105,28 @@ void MainWindow::setNickname()
 /**
  * Creates a tray icon and tray icon menu for the application.
  * Connects actions for clicking on tray icon, message box and right-click.
+ * @brief MainWindow::createTray
  */
 void MainWindow::createTray()
 {
     trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setIcon(QIcon(":/images/images/icon.ico"));
+    trayIcon->setIcon(QIcon(APPLICATION_ICON));
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(trayActions(QSystemTrayIcon::ActivationReason)));
     connect(trayIcon, SIGNAL(messageClicked()), this, SLOT(trayMessageClicked()));
 
     trayMenu = new QMenu(this);
-    trayMenu->addAction(new QAction("Show", this));
-    trayMenu->addAction(new QAction("Exit", this));
+    trayMenu->addAction(new QAction(STR_SHOW, this));
+    trayMenu->addAction(new QAction(STR_EXIT, this));
     connect(trayMenu, SIGNAL(triggered(QAction*)), this, SLOT(trayMenuClicked(QAction*)));
     trayIcon->setContextMenu(trayMenu);
     trayIcon->show();
 }
 
-// Opens window if "Show"-action is clicked in tray icon context menu, otherwise closes it.
+/**
+ * Opens window if "Show"-action is clicked in tray icon context menu, otherwise closes it.
+ * @brief MainWindow::trayMenuClicked
+ * @param action Action that has been clicked.
+ */
 void MainWindow::trayMenuClicked(QAction* action)
 {
    if( trayMenu->actions().at(0) == action)
@@ -108,7 +136,10 @@ void MainWindow::trayMenuClicked(QAction* action)
    else close();
 }
 
-// Conveniance method for sending broadcast-messages from the main tab.
+/**
+ * Conveniance method for sending broadcast-messages from the main tab.
+ * @brief MainWindow::sendMsg
+ */
 void MainWindow::sendMsg()
 {
     QString newMsg = ui->txtMessage->toPlainText();
@@ -119,7 +150,12 @@ void MainWindow::sendMsg()
     }
 }
 
-// Adds a Peer to the list of contacts, if it doesnt exist from before.
+/**
+ * Adds a Peer to the list of contacts, if it doesnt exist from before.
+ * @brief MainWindow::addLocalContact
+ * @param peer Peer to add
+ * @return false if Peer already is in contact list, else true
+ */
 bool MainWindow::addLocalContact(Peer* peer)
 {
     QListWidget* list =  ui->lstContacts;
@@ -134,7 +170,12 @@ bool MainWindow::addLocalContact(Peer* peer)
     return true;
 }
 
-// Removes a peer from the list of contacts.
+/**
+ * Removes a peer from the list of contacts.
+ * @brief MainWindow::removeLocalContact
+ * @param p Peer to remove
+ * @return true if found and deleted
+ */
 bool MainWindow::removeLocalContact(Peer* p)
 {
     QListWidget* list =  ui->lstContacts;
@@ -151,7 +192,11 @@ bool MainWindow::removeLocalContact(Peer* p)
     return false;
 }
 
-// Conveniance method for adding text to the main-tab conversation.
+/**
+ * Conveniance method for adding text to the main-tab conversation.
+ * @brief MainWindow::addTextToConvo
+ * @param text "{name}|{msg}"
+ */
 void MainWindow::addTextToConvo(QString text)
 {
     addTextToConvo(ui->txtConvo, text);
@@ -160,7 +205,11 @@ void MainWindow::addTextToConvo(QString text)
     if(!isVisible()) displayTrayMsg(0, text);
 }
 
-// Adds given text to the given QTextEdit-field, formats the text with html.
+/**
+ * Adds given text to the given QTextEdit-field, formats the text with html.
+ * @brief MainWindow::addTextToConvo
+ * @param text "{name}|{msg}"
+ */
 void MainWindow::addTextToConvo(QTextEdit* convo, QString text)
 {
     QStringList list = text.split("|", QString::SkipEmptyParts);
@@ -174,7 +223,7 @@ void MainWindow::addTextToConvo(QTextEdit* convo, QString text)
     }
 
     QString str("<font color=\"" + color + "\"><b>" + list[0] + "</b></font><font color=\"#C0C0C0\">");
-    str += " (" + QDate::currentDate().toString("yyyy.MM.dd") + " " + QTime::currentTime().toString("HH.mm") + ")</font>:<pre style=\"margin:0px;padding:0px;\">\t";
+    str += " (" + QDate::currentDate().toString(DATE_FORMAT) + " " + QTime::currentTime().toString(TIME_FORMAT) + ")</font>:<pre style=\"margin:0px;padding:0px;\">\t";
     for (int i = 1; i < list.size(); ++i)
     {
         str += list[i];
@@ -199,10 +248,11 @@ void MainWindow::addTextToConvo(QTextEdit* convo, QString text)
  * Used to differentiate between "Enter", which should send a message,
  * and "Shift-Enter" which should create a newline.
  * Other events are passed on to the base class.
+ * @brief MainWindow::eventFilter
  */
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
-    if ((object == ui->txtMessage || object->objectName().compare("txtTabMessage") == 0)  && event->type() == QEvent::KeyPress)
+    if ((object == ui->txtMessage || object->objectName().compare(CONVO_TAB_MSG_ID) == 0)  && event->type() == QEvent::KeyPress)
     {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
 
@@ -225,7 +275,10 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         return QMainWindow::eventFilter(object, event);
 }
 
-// Hides the window when it is minimized, so that it's only visible in the tray.
+/**
+ * Hides the window when it is minimized, so that it's only visible in the tray.
+ * @brief MainWindow::changeEvent
+ */
 void MainWindow::changeEvent(QEvent* e)
 {
     switch (e->type())
@@ -245,15 +298,21 @@ void MainWindow::changeEvent(QEvent* e)
     QMainWindow::changeEvent(e);
 }
 
-// Unhides the window and puts it in a focused state.
+/**
+ * Unhides the window and puts it in a focused state.
+ * @brief MainWindow::openWindow
+ */
 void MainWindow::openWindow()
 {
     show();
     setWindowState(Qt::WindowActive);
-    trayIcon->setIcon(QIcon(":/images/images/icon.ico"));
+    trayIcon->setIcon(QIcon(APPLICATION_ICON));
 }
 
-// Unhides the main window when tray icon is double-clicked.
+/**
+ * Unhides the main window when tray icon is double-clicked.
+ * @brief MainWindow::trayActions
+ */
 void MainWindow::trayActions(QSystemTrayIcon::ActivationReason reason)
 {
     switch (reason)
@@ -270,7 +329,10 @@ void MainWindow::trayActions(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
-// Saves settings to ini file, and sends a log off signal.
+/**
+ * Saves settings to ini file, and sends a log off signal.
+ * @brief MainWindow::closing
+ */
 void MainWindow::closing()
 {
     controller->saveSettings();
@@ -281,12 +343,13 @@ void MainWindow::closing()
  * Gets the conversation corresponding to the
  * currently selected tab, and sends whatever's in its
  * message text-box to all participants of the conversation.
+ * @brief MainWindow::sendConvoMessage
  */
 void MainWindow::sendConvoMessage()
 {
     Conversation *cdata = convos->at(ui->tabgrpConversations->currentIndex()-1);
-    QTextEdit* txtMsg = ui->tabgrpConversations->currentWidget()->findChild<QTextEdit*>("txtTabMessage");
-    QTextEdit* txtConv = ui->tabgrpConversations->currentWidget()->findChild<QTextEdit*>("txtTabConvo");
+    QTextEdit* txtMsg = ui->tabgrpConversations->currentWidget()->findChild<QTextEdit*>(CONVO_TAB_MSG_ID);
+    QTextEdit* txtConv = ui->tabgrpConversations->currentWidget()->findChild<QTextEdit*>(CONVO_TAB_TXT_ID);
 
     if(txtMsg->toPlainText().length() > 0)
     {
@@ -299,6 +362,7 @@ void MainWindow::sendConvoMessage()
 /**
  * Called when double-clicking a contact in the contact list.
  * Creates a new conversation with a new id, and a new tab.
+ * @brief MainWindow::newPrivateConvo
  */
 void MainWindow::newPrivateConvo()
 {
@@ -312,12 +376,18 @@ void MainWindow::newPrivateConvo()
     grp->setCurrentIndex(grp->count()-1);
 }
 
-// Creates a new tab, and initializes a new conversation with given ip and name.
+/**
+ * Creates a new tab, and initializes a new conversation with given ip and name.
+ * @brief MainWindow::createTab
+ * @param cid Conversation id.
+ * @param ip IPv4 address
+ * @param name Nickname
+ */
 void MainWindow::createTab(QString cid, QString ip, QString name)
 {
     // Inflate tablelayout from file
         QFormBuilder builder;
-        QFile file(":/Forms/tab.ui");
+        QFile file(FORM_TAB);
         file.open(QFile::ReadOnly);
         QWidget *tabLayout = builder.load(&file, this);
         file.close();
@@ -333,14 +403,14 @@ void MainWindow::createTab(QString cid, QString ip, QString name)
     QPushButton* btnSend = tabLayout->findChild<QPushButton*>("btnTabSend");
     connect(btnSend, SIGNAL(clicked()), this, SLOT(sendConvoMessage()));
 
-    QTextEdit* txtMsg = tabLayout->findChild<QTextEdit*>("txtTabMessage");
+    QTextEdit* txtMsg = tabLayout->findChild<QTextEdit*>(CONVO_TAB_MSG_ID);
     txtMsg->installEventFilter(this);
 
     QListWidget* lstSmil = tabLayout->findChild<QListWidget*>("lstTabSmileys");
     connect(lstSmil, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(on_lstSmileys_doubleClicked(QModelIndex)));
     for (int i = 0; i < smileys->count(); i++)
     {
-        QListWidgetItem* qlwi = new QListWidgetItem(QIcon(":/smileys/images/smileys/" + QString::number(i) + ".png"), "");
+        QListWidgetItem* qlwi = new QListWidgetItem(QIcon(RES_SMILEYS + QString::number(i) + ".png"), "");
         lstSmil->addItem(qlwi);
     }
 
@@ -356,9 +426,10 @@ void MainWindow::createTab(QString cid, QString ip, QString name)
 
 /**
  * Called when recieving a private message.
- * Input should be formatted in the following way: {convo_id}|{from_ip}|{message_txt}
  * Adds message to a tab if the tab corresponds to the given convo id,
  * otherwise creates a new tab.
+ * @brief MainWindow::displayPrivateMsg
+ * @param data "{convo_id}|{from_ip}|{message_txt}"
  */
 void MainWindow::displayPrivateMsg(QString data)
 {
@@ -369,27 +440,32 @@ void MainWindow::displayPrivateMsg(QString data)
     {
         if(convos->at(i)->getCid().compare(match.captured(1)) == 0)
         {
-            QTextEdit* tmp = ui->tabgrpConversations->widget(i+1)->findChild<QTextEdit*>("txtTabConvo");
+            QTextEdit* tmp = ui->tabgrpConversations->widget(i+1)->findChild<QTextEdit*>(CONVO_TAB_TXT_ID);
             addTextToConvo(tmp, match.captured(3));
 
             if(ui->tabgrpConversations->currentIndex() != i+1) //if tab not focused, set header color to red.
-                indicateChange(i+1, COLOR_RED);
+                indicateChange(i+1, CHANGE_NEW);
             if(!isVisible())
                 displayTrayMsg(i+1, match.captured(3));
             return;
         }
     }
     createTab(match.captured(1), match.captured(2), match.captured(3).split("|").at(0));
-    QTextEdit* tmp = ui->tabgrpConversations->widget(convos->count())->findChild<QTextEdit*>("txtTabConvo");
+    QTextEdit* tmp = ui->tabgrpConversations->widget(convos->count())->findChild<QTextEdit*>(CONVO_TAB_TXT_ID);
     addTextToConvo(tmp, match.captured(3));
-    indicateChange(convos->count(), COLOR_RED);
+    indicateChange(convos->count(), CHANGE_NEW);
     if(!isVisible()) displayTrayMsg(convos->count(), match.captured(3));
 }
 
-// Called to indicate a tab has changed content or recieved focus.
+/**
+ * Called to indicate a tab has changed content or recieved focus.
+ * @brief MainWindow::indicateChange
+ * @param index Tabindex
+ * @param flag Type of change
+ */
 void MainWindow::indicateChange(int index, int flag)
 {
-    if(flag == COLOR_RED)
+    if(flag == CHANGE_NEW)
     {
         ui->tabgrpConversations->tabBar()->setTabTextColor(index, Qt::red);
     }
@@ -401,7 +477,9 @@ void MainWindow::indicateChange(int index, int flag)
  * Called if window is hidden when it recieves a message.
  * Displays the message in a ballon-popup in the tray.
  * Also sets tray icon to be red, to indicate an unread message.
- * Text formatted as follows: {sender_name}|{message}
+ * @brief MainWindow::displayTrayMsg
+ * @param index Tabindex
+ * @param text "{sender_name}|{message}"
  */
 void MainWindow::displayTrayMsg(int index, const QString& text)
 {
@@ -416,12 +494,13 @@ void MainWindow::displayTrayMsg(int index, const QString& text)
             trayIcon->showMessage(lst.at(0) + " says:", txt.toString());
         }
     }
-    trayIcon->setIcon(QIcon(":/images/images/red.ico"));
+    trayIcon->setIcon(QIcon(APPLICATION_ICON_RED));
 }
 
 /**
  * Focuses the tab with the most recent message,
  * when a ballon-popup is clicked.
+ * @brief MainWindow::trayMessageClicked
  */
 void MainWindow::trayMessageClicked()
 {
@@ -429,7 +508,11 @@ void MainWindow::trayMessageClicked()
     ui->tabgrpConversations->setCurrentIndex(lastUpdatedTab);
 }
 
-// Removes the conversation corresponding to the tab being closed.
+/**
+ * Removes the conversation corresponding to the tab being closed.
+ * @brief MainWindow::on_tabgrpConversations_tabCloseRequested
+ * @param index Tabindex
+ */
 void MainWindow::on_tabgrpConversations_tabCloseRequested(int index)
 {
     Conversation *c = convos->at(index-1);
@@ -442,6 +525,7 @@ void MainWindow::on_tabgrpConversations_tabCloseRequested(int index)
 /**
  * Inserts an image tag corresponding to the clicked smiley
  * into the message-textbox.
+ * @brief MainWindow::on_lstSmileys_doubleClicked
  */
 void MainWindow::on_lstSmileys_doubleClicked(const QModelIndex &index)
 {
@@ -450,7 +534,7 @@ void MainWindow::on_lstSmileys_doubleClicked(const QModelIndex &index)
 
     if(ui->tabgrpConversations->currentIndex() != 0)
     {
-        txtMsg = ui->tabgrpConversations->currentWidget()->findChild<QTextEdit*>("txtTabMessage");
+        txtMsg = ui->tabgrpConversations->currentWidget()->findChild<QTextEdit*>(CONVO_TAB_MSG_ID);
     }
     txtMsg->insertPlainText(img);
     txtMsg->setFocus();
@@ -460,6 +544,7 @@ void MainWindow::on_lstSmileys_doubleClicked(const QModelIndex &index)
  * Called when tab is switched, empties the participant list,
  * and populates it with the participants in the newly selected
  * tab.
+ * @brief MainWindow::on_tabgrpConversations_currentChanged
  */
 void MainWindow::on_tabgrpConversations_currentChanged(int index)
 {
@@ -481,7 +566,8 @@ void MainWindow::on_tabgrpConversations_currentChanged(int index)
  * Called when user has been added to an existing conversation
  * between two or more participants. Creates a new tab, and
  * adds all participants to the corresponding conversation list.
- * Input format: {convo_id}|{ip}|{name}|{ip}|{name}|...
+ * @brief MainWindow::createExistingConvo
+ * @param data "{convo_id}|{ip}|{name}|{ip}|{name}|..."
  */
 void MainWindow::createExistingConvo(QString data)
 {
@@ -501,23 +587,22 @@ void MainWindow::createExistingConvo(QString data)
 /**
  * Called when context menu on the contact list has been clicked.
  * Calls methods to respond to clicked action.
+ * @brief MainWindow::contactsMenuClicked
  */
 void MainWindow::contactsMenuClicked(QAction *action)
 {
     QString sel(ui->lstContacts->selectedItems().at(0)->data(Qt::DisplayRole).toString());
 
-    qDebug() << action->text();
-
-    if(action->text().compare("Add to conversation") == 0) //Add contact to conversation
+    if(action->text().compare(STR_ADD_TO_CONVO) == 0) //Add contact to conversation
     {
         contextAddToConvo(sel);
     }
-    if(action->text().compare("Remove") == 0) //Remove contact from list
+    if(action->text().compare(STR_REMOVE) == 0) //Remove contact from list
     {
         ui->lstContacts->takeItem(ui->lstContacts->currentRow());
         controller->removeExtContact(sel);
     }
-    if(action->text().compare("Block/Unblock") == 0) //Block contact
+    if(action->text().compare(STR_BLOCK_UNBLK) == 0) //Block contact
     {
         // Indicate a blocked contact with grey text and strikethrough.
         QFont f = ui->lstContacts->selectedItems().at(0)->font();
@@ -536,7 +621,11 @@ void MainWindow::contactsMenuClicked(QAction *action)
     }
 }
 
-// Adds selected participant to a conversation, and notifies participants.
+/**
+ * Adds selected participant to a conversation, and notifies participants.
+ * @brief MainWindow::contextAddToConvo
+ * @param sel Member to add, formatted: "{name}/{ip}"
+ */
 void MainWindow::contextAddToConvo(QString sel)
 {
     Conversation* convo = convos->at(ui->tabgrpConversations->currentIndex()-1);
@@ -547,12 +636,13 @@ void MainWindow::contextAddToConvo(QString sel)
 }
 
 /**
- * Adds a participant to a convo, if that conversation dont
- * exist, the tab and convo is created.
- * fromIp and fromName is the user that added someone to a conversation,
- * is empty if originating user is the current user.
- * member is the new participant to be added: {name}/{ip}.
- * Returns false if member already exists in the conversation, true otherwise.
+ * Adds a participant to a convo, if that conversation dont exist, the tab and convo is created.
+ * @brief MainWindow::addToConvo
+ * @param fromIp ip of user that added someone to a conversation, empty if originating user is the current user.
+ * @param fromName name of user that added someone to a conversation, empty if originating user is the current user.
+ * @param member new participant to be added: "{name}/{ip}"
+ * @param cid Conversation id.
+ * @return false if member already exists in the conversation, true otherwise.
  */
 bool MainWindow::addToConvo(QString fromIp, QString fromName, QString member, QString cid)
 {
@@ -589,17 +679,21 @@ bool MainWindow::addToConvo(QString fromIp, QString fromName, QString member, QS
     return true;
 }
 
-// Creates a context menu when user right-clicks on a contact.
+/**
+ * Creates a context menu when user right-clicks on a contact.
+ * @brief MainWindow::on_lstContacts_customContextMenuRequested
+ * @param pos Cooridinates of right-click
+ */
 void MainWindow::on_lstContacts_customContextMenuRequested(const QPoint &pos)
 {
     if(ui->lstContacts->selectedItems().count() < 1) return;
 
     contactsMenu = new QMenu("Context menu", this);
-    QAction* add = new QAction("Add to conversation", this);
+    QAction* add = new QAction(STR_ADD_TO_CONVO, this);
     if(ui->tabgrpConversations->currentIndex() == 0) add->setDisabled(true);
     contactsMenu->addAction(add);
-    contactsMenu->addAction(new QAction("Remove", this));
-    contactsMenu->addAction(new QAction("Block/Unblock", this));
+    contactsMenu->addAction(new QAction(STR_REMOVE, this));
+    contactsMenu->addAction(new QAction(STR_BLOCK_UNBLK, this));
     connect(contactsMenu, SIGNAL(triggered(QAction*)), this, SLOT(contactsMenuClicked(QAction*)));
     contactsMenu->exec(ui->lstContacts->mapToGlobal(pos));
     contactsMenu->deleteLater();
@@ -608,6 +702,7 @@ void MainWindow::on_lstContacts_customContextMenuRequested(const QPoint &pos)
 /**
  * Called when user presses a button to add a contact.
  * Prompts user with an input dialog to name his new contact.
+ * @brief MainWindow::on_pushButton_clicked
  */
 void MainWindow::on_pushButton_clicked()
 {
@@ -638,7 +733,10 @@ void MainWindow::on_pushButton_clicked()
     }
 }
 
-// Destructor
+/**
+ * Destructor
+ * @brief MainWindow::~MainWindow
+ */
 MainWindow::~MainWindow()
 {
     delete trayMenu;
