@@ -1,0 +1,51 @@
+<RCC>
+    <qresource prefix="/Forms">
+        <file>tab.ui</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>images/icon.ico</file>
+        <file>images/red.ico</file>
+    </qresource>
+    <qresource prefix="/smileys">
+        <file>images/smileys/0.png</file>
+        <file>images/smileys/1.png</file>
+        <file>images/smileys/2.png</file>
+        <file>images/smileys/3.png</file>
+        <file>images/smileys/4.png</file>
+        <file>images/smileys/5.png</file>
+        <file>images/smileys/6.png</file>
+        <file>images/smileys/7.png</file>
+        <file>images/smileys/8.png</file>
+        <file>images/smileys/9.png</file>
+        <file>images/smileys/10.png</file>
+        <file>images/smileys/11.png</file>
+        <file>images/smileys/12.png</file>
+        <file>images/smileys/13.png</file>
+        <file>images/smileys/14.png</file>
+        <file>images/smileys/15.png</file>
+        <file>images/smileys/16.png</file>
+        <file>images/smileys/17.png</file>
+        <file>images/smileys/18.png</file>
+        <file>images/smileys/19.png</file>
+        <file>images/smileys/20.png</file>
+        <file>images/smileys/21.png</file>
+        <file>images/smileys/22.png</file>
+        <file>images/smileys/23.png</file>
+        <file>images/smileys/24.png</file>
+        <file>images/smileys/25.png</file>
+        <file>images/smileys/26.png</file>
+        <file>images/smileys/27.png</file>
+        <file>images/smileys/28.png</file>
+        <file>images/smileys/29.png</file>
+        <file>images/smileys/30.png</file>
+        <file>images/smileys/31.png</file>
+        <file>images/smileys/32.png</file>
+        <file>images/smileys/33.png</file>
+        <file>images/smileys/34.png</file>
+        <file>images/smileys/35.png</file>
+        <file>images/smileys/36.png</file>
+        <file>images/smileys/37.png</file>
+        <file>images/smileys/38.png</file>
+        <file>images/smileys/39.png</file>
+    </qresource>
+</RCC>
