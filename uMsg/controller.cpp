@@ -289,10 +289,6 @@ void Controller::readIncomingMessage(QString str)
         {
             window->createExistingConvo(isFrom_match.captured(2));
         }
-        else if(isFrom_match.captured(1).compare(FLAG_LEAVE_CONVO) == 0)
-        {
-            //window->removeFromConvo(isFrom_match.captured(2));
-        }
     }
 }
 
