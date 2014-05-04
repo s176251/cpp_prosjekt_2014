@@ -76,3 +76,71 @@ Peer* Conversation::remove(Peer* peer)
         if(p->equals(peer))
         {
             peers->removeAt(i);
+            return p;
+        }
+    }
+    return 0;
+}
+
+/**
+ * Adds a Peer to the list of peers with the incoming paramaters as values.
+ *
+ * @brief Conversation::add
+ * @param ip the new Peers IP-address
+ * @param name the new Peers Name
+ * @param external true if this is an external Peer, false if Local Peer
+ * @return the newly created and added Peer
+ */
+Peer* Conversation::add(const QString& ip, const QString& name, const bool external)
+{
+    Peer* p = new Peer(ip, name, external);
+    peers->append(p);
+    return p;
+}
+
+/**
+ * Checks if a Peer exists in this list with the provided IP and Name.
+ *
+ * @brief Conversation::contains
+ * @param ip IP-address to use as search paramater
+ * @param name Name to use as search paramater
+ * @return true if contained in the list, false if not
+ */
+bool Conversation::contains(QString& ip, QString& name)
+{
+    for (int i = 0; i < peers->count(); ++i)
+    {
+        Peer* p = peers->at(i);
+        if(p->getIp().compare(ip) == 0 && p->getName().compare(name) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Finds and returns the Peer with the provided IP and Name
+ *
+ * @brief Conversation::get
+ * @param ip IP-address to use as search paramater
+ * @param name Name to use as search paramater
+ * @return he Peer* if found, 0 if not
+ */
+Peer* Conversation::get(QString& ip, QString& name)
+{
+    for (int i = 0; i < peers->count(); ++i)
+    {
+        Peer* p = peers->at(i);
+        if(p->getIp().compare(ip) == 0 && p->getName().compare(name) == 0)
+        {
+            return p;
+        }
+    }
+    return 0;
+}
+
+Conversation::~Conversation()
+{
+    delete peers;
+}

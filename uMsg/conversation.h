@@ -31,3 +31,27 @@ public:
     //Finds and the removes the incoming Peer
     Peer* remove(Peer* peer);
     //Adds a Peer to the list of peers with the incoming paramaters as values.
+    Peer* add(const QString& ip, const QString& name, const bool external = false);
+    //Checks if a Peer exists in this list with the provided IP and Name.
+    bool contains(QString& ip, QString& name);
+    //Finds and returns the Peer with the provided IP and Name
+    Peer* get(QString& ip, QString& name);
+
+    //Getter for the number of peers within the list. Calls QList::count()
+    int count();
+    //Returns the peer at the given index=i
+    Peer *at(int i);
+    //Destructor
+    ~Conversation();
+private:
+    //The conversation ID
+    QString cid;
+    //The list of Peers
+    QList<Peer*> *peers;
+
+signals:
+
+public slots:
+};
+
+#endif // CONVERSATION_H

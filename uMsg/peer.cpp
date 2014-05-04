@@ -8,6 +8,30 @@ Peer::Peer(const QString& ip, const QString& name, bool external, QObject *paren
 {
 }
 
+bool Peer::isExternal()
+{
+    return external;
+}
+
+QString& Peer::getIp()
+{
+    return ip;
+}
+
+QString& Peer::getName()
+{
+    return name;
+}
+
+QString& Peer::getNick()
+{
+    return nick;
+}
+
+void Peer::setName(const QString& name)
+{
+    this->name = name;
+}
 
 bool Peer::equals(Peer *p)
 {

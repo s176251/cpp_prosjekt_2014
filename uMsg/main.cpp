@@ -16,3 +16,18 @@ int main(int argc, char *argv[])
     try
     {
         MainWindow w;
+        w.show();
+        QObject::connect(&a, SIGNAL(aboutToQuit()), &w, SLOT(closing()));
+        return a.exec();
+    }
+    catch(char const* error)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Error");
+        msgBox.setInformativeText(error);
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
+    }
+    return 0;
+}

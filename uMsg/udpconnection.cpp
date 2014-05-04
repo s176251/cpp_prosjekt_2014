@@ -1,3 +1,88 @@
+#include "udpconnection.h"
+#include "controller.h"
+
+UdpConnection* UdpConnection::_me = NULL;
+
+const QString GOOGLE_DNS = "8.8.8.8";
+const int GOOGLE_DNS_PORT = 56;
+const int GOOGLE_DNS_TIMEOUT = 1000;
+
+/**
+ * Private custructor; part of the Singleton pattern.
+ *
+ * @brief UdpConnection::UdpConnection
+ * @param parent
+ * @param _cont pointer to the Controller class which facilitates communication with the GUI
+ */
+UdpConnection::UdpConnection(QObject *parent, Controller* _cont) : QObject(parent), uPort(7755)
+{
+    controller = _cont;
+    initSocket();
+}
+
+/**
+ * Public getter method for the private me-pointer.
+ *
+ * @brief UdpConnection::getSingleton
+ * @param parent
+ * @param _cont pointer to the Controller class which facilitates communication with the GUI
+ * @return pointer to this singleton class
+ */
+UdpConnection* UdpConnection::getSingleton(QObject *parent, Controller* _cont)
+{
+    if(UdpConnection::_me == NULL)
+    {
+        UdpConnection::_me = new UdpConnection(parent, _cont);
+    }
+    return UdpConnection::_me;
+}
+
+/**
+ * Initializes the socket and sets the needed IPs. Connects the readyREad SIGNAL to the
+ * readPendingDiagrams SLOT. This method is called by the custructor.
+ *
+ * @brief UdpConnection::initSocket
+ */
+void UdpConnection::initSocket()
+{
+    udpSocket = new QUdpSocket(this);
+    setMyLocalIp();
+    setBroadcastAdr(myLocalIp);
+
+    udpSocket->bind(QHostAddress::Any, uPort);
+    connect(udpSocket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+}
+
+/**
+ * Sets the pointers myLocalIp and myLocalIpAdr by querying Google dns, or if the query times out,
+ * gets the local IPs provided byt the system, and selects the first one in this list. This is almost
+ * always the right address (tested on multiple computers with 100% success). If you do NOT have a valid internet
+ * connection AND the chosen IP is the wrong one; the program will not be able to send messages on the LAN.
+ *
+ * @brief UdpConnection::setMyLocalIp
+ */
+void UdpConnection::setMyLocalIp()
+{
+    QStringList ips;
+
+    QTcpSocket socket;
+    socket.connectToHost(GOOGLE_DNS, GOOGLE_DNS_PORT);
+    if (socket.waitForConnected(GOOGLE_DNS_TIMEOUT))
+    {
+        ips.append(socket.localAddress().toString());
+    }
+    else
+    {
+        foreach (const QHostAddress &address, QNetworkInterface::allAddresses())
+        {
+            if (address.protocol() == QAbstractSocket::IPv4Protocol && address != QHostAddress(QHostAddress::LocalHost))
+                ips.append(address.toString());
+        }
+    }
+
+    if(ips.length() == 0) throw "No local ip detected";
+
+    myLocalIp = ips[0];
     myLocalIpAdr = new QHostAddress(myLocalIp);
 }
 

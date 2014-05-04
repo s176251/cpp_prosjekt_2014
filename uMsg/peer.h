@@ -14,3 +14,20 @@ public:
     QString& getName();
     QString& getNick();
     void setName(const QString &name);
+    bool equals(Peer* p);
+    bool operator ==(Peer& p);
+
+    bool isExternal();
+private:
+    QString ip;
+    QString name;
+    QString nick;
+    bool external;
+
+signals:
+
+public slots:
+
+};
+
+#endif // PEER_H

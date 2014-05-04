@@ -54,3 +54,47 @@ public:
     //Also sends all the participants' IPs to the newly added PEER.
     void notifyMembersChanged(Conversation *convo, QString sel);
     //Uses UdpHelper to send a broadcasted message
+    void sendBroadcastMsg(QString msg);
+    //Sends a message to all Peers whitin the parameter convo containing the flag FLAG_LEAVE_CONVO,
+    //so that this Peer can be stricken from the Peers' conversations lists.
+    void leaveConversation(Conversation *convo);
+    //Getter for the list of Conversations
+    QList<Conversation *> *getConvos();
+    //Getter for external and local ip switched on the bool external
+    QString &myIp(bool external = false);
+    //Getter for the nickname of this instance
+    QString &myName();
+    //Getter for this instances Peer
+    Peer *me();
+    //Sets the name variable within Peer *myInfo to the newName paramater
+    void setMyName(const QString &newName);
+    //Saves the settings for this instance to file
+    void saveSettings();
+    //Destructor
+    ~Controller();
+    //Adds the paramater contact as a new external contact in the QStringList* extContacts list.
+    void addExternalContact(const QString &contact);
+    //Getter for QStringList* extContacts
+    QStringList getSavedContacts();
+    //Removes an entry corresponding to the paramater toRemove from QStringList* extContacts
+    bool removeExtContact(const QString &toRemove);
+    //Removes an entry corresponding to the paramater toUnblock from QStringList* blockList
+    void unblockContact(const QString &toUnblock);
+    //Adds the paramater contact as a new blocked contact in the QStringList* blockList list.
+    void blockContact(const QString &toBlock);
+    //Finds the entry corresponding to the paramater ip in the QStringList* blockList list, returns true if found, false if not
+    bool isBlocked(const QString &ip);
+    //Checks if a given ip is external
+    bool isExternal(const QString &ip);
+signals:
+
+public slots:
+    //Uses UdpHelper to broadcast a message with the flag FLAG_LAN_SCAN to the local bcast adr
+    void scanLan();
+
+private slots:
+    //SLOT for the getIp() method. Called when program gets a reply from the getIp() request.
+    void setExternalIp(QNetworkReply *reply);
+};
+
+#endif // CONTROLLER_H

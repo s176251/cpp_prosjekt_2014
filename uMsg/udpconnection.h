@@ -32,3 +32,38 @@ class UdpConnection : public QObject, public Connection
     QString myLocalIp, localBcast;
 
     //Static pointer to the Singleton class itself; part of the Singleton Pattern
+    static UdpConnection* _me;
+    //uMSG Default Port
+    const int uPort;
+
+    //Sets the local IP adress by either querying Google DNS or choosing on of local IP's provided by the system
+    void setMyLocalIp();
+    //Sets the broadcast adr by adding 255 to the end of the localAdr
+    void setBroadcastAdr(QString localIp);
+    //Initializes the socket. Sets all needed IPs. This method is called by the cunstructor.
+    void initSocket();
+    //Method for processing the datagrams provided by the readPendingDatagrams SLOT
+    void processTheDatagram(QByteArray &datagram);
+    //Cunstructor
+    explicit UdpConnection(QObject *parent = 0, Controller *_cont = 0);
+
+public:
+    //Sends the incoming msg to the broadcast address
+    void broadcastMessage(const QString &msg);
+    //Sends the incoming msg to the provided IP-address
+    void sendMessage(const QString &msg, const QString &ip);
+    //Getter method for myLocalIP
+    QString ip();
+    //Getter for the singleton pointer: me
+    static UdpConnection *getSingleton(QObject *parent, Controller *_cont);
+    //Destructor
+    ~UdpConnection();
+
+signals:
+
+public slots:
+    //Is called when the UDP-socket recieves packets
+    void readPendingDatagrams();
+};
+
+#endif // UDPCONNECTION_H

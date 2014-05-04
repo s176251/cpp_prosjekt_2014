@@ -321,3 +321,329 @@ void MainWindow::createTab(QString cid, QString ip, QString name)
         file.open(QFile::ReadOnly);
         QWidget *tabLayout = builder.load(&file, this);
         file.close();
+
+    // Add layout to a new tab
+        QVBoxLayout *layout = new QVBoxLayout;
+        layout->addWidget(tabLayout);
+        QWidget *newTab = new QWidget(ui->tabgrpConversations);
+        newTab->setLayout(layout);
+        ui->tabgrpConversations->addTab(newTab, name + "/" + ip);
+
+    //Add eventlisteners to new tab button, message text-box and smiley-list.
+    QPushButton* btnSend = tabLayout->findChild<QPushButton*>("btnTabSend");
+    connect(btnSend, SIGNAL(clicked()), this, SLOT(sendConvoMessage()));
+
+    QTextEdit* txtMsg = tabLayout->findChild<QTextEdit*>("txtTabMessage");
+    txtMsg->installEventFilter(this);
+
+    QListWidget* lstSmil = tabLayout->findChild<QListWidget*>("lstTabSmileys");
+    connect(lstSmil, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(on_lstSmileys_doubleClicked(QModelIndex)));
+    for (int i = 0; i < smileys->count(); i++)
+    {
+        QListWidgetItem* qlwi = new QListWidgetItem(QIcon(":/smileys/images/smileys/" + QString::number(i) + ".png"), "");
+        lstSmil->addItem(qlwi);
+    }
+
+    Conversation* c = new Conversation(cid);
+    if(controller->isExternal(ip)) //External ip
+    {
+        c->add(ip, name, true);
+    }
+    else c->add(ip, name);
+
+    convos->append(c);
+}
+
+/**
+ * Called when recieving a private message.
+ * Input should be formatted in the following way: {convo_id}|{from_ip}|{message_txt}
+ * Adds message to a tab if the tab corresponds to the given convo id,
+ * otherwise creates a new tab.
+ */
+void MainWindow::displayPrivateMsg(QString data)
+{
+    QRegularExpression re("(\\d+)\\|(\\d+\\.\\d+\\.\\d+\\.\\d+)\\|(.*)");
+    QRegularExpressionMatch match = re.match(data);
+
+    for (int i = 0; i < convos->count(); i++)
+    {
+        if(convos->at(i)->getCid().compare(match.captured(1)) == 0)
+        {
+            QTextEdit* tmp = ui->tabgrpConversations->widget(i+1)->findChild<QTextEdit*>("txtTabConvo");
+            addTextToConvo(tmp, match.captured(3));
+
+            if(ui->tabgrpConversations->currentIndex() != i+1) //if tab not focused, set header color to red.
+                indicateChange(i+1, COLOR_RED);
+            if(!isVisible())
+                displayTrayMsg(i+1, match.captured(3));
+            return;
+        }
+    }
+    createTab(match.captured(1), match.captured(2), match.captured(3).split("|").at(0));
+    QTextEdit* tmp = ui->tabgrpConversations->widget(convos->count())->findChild<QTextEdit*>("txtTabConvo");
+    addTextToConvo(tmp, match.captured(3));
+    indicateChange(convos->count(), COLOR_RED);
+    if(!isVisible()) displayTrayMsg(convos->count(), match.captured(3));
+}
+
+// Called to indicate a tab has changed content or recieved focus.
+void MainWindow::indicateChange(int index, int flag)
+{
+    if(flag == COLOR_RED)
+    {
+        ui->tabgrpConversations->tabBar()->setTabTextColor(index, Qt::red);
+    }
+    else
+        ui->tabgrpConversations->tabBar()->setTabTextColor(index, Qt::black);
+}
+
+/**
+ * Called if window is hidden when it recieves a message.
+ * Displays the message in a ballon-popup in the tray.
+ * Also sets tray icon to be red, to indicate an unread message.
+ * Text formatted as follows: {sender_name}|{message}
+ */
+void MainWindow::displayTrayMsg(int index, const QString& text)
+{
+    lastUpdatedTab = index;
+    if(ui->actionBalloon_Notification->isChecked())
+    {
+        QStringList lst = text.split("|", QString::SkipEmptyParts);
+        if(lst.count() > 1)
+        {
+            QStringRef txt(&lst.at(1), 0, lst.at(1).length());
+            if(lst.at(1).length() > 20) txt = QStringRef(&lst.at(1), 0, 20);
+            trayIcon->showMessage(lst.at(0) + " says:", txt.toString());
+        }
+    }
+    trayIcon->setIcon(QIcon(":/images/images/red.ico"));
+}
+
+/**
+ * Focuses the tab with the most recent message,
+ * when a ballon-popup is clicked.
+ */
+void MainWindow::trayMessageClicked()
+{
+    openWindow();
+    ui->tabgrpConversations->setCurrentIndex(lastUpdatedTab);
+}
+
+// Removes the conversation corresponding to the tab being closed.
+void MainWindow::on_tabgrpConversations_tabCloseRequested(int index)
+{
+    Conversation *c = convos->at(index-1);
+    controller->leaveConversation(c);
+    convos->removeAt(index-1);
+    delete c;
+    delete ui->tabgrpConversations->widget(index);
+}
+
+/**
+ * Inserts an image tag corresponding to the clicked smiley
+ * into the message-textbox.
+ */
+void MainWindow::on_lstSmileys_doubleClicked(const QModelIndex &index)
+{
+    QString img = "<img src=\"images/smileys/small/" + QString::number(index.row()) + ".png\" />";
+    QTextEdit* txtMsg = ui->txtMessage;
+
+    if(ui->tabgrpConversations->currentIndex() != 0)
+    {
+        txtMsg = ui->tabgrpConversations->currentWidget()->findChild<QTextEdit*>("txtTabMessage");
+    }
+    txtMsg->insertPlainText(img);
+    txtMsg->setFocus();
+}
+
+/**
+ * Called when tab is switched, empties the participant list,
+ * and populates it with the participants in the newly selected
+ * tab.
+ */
+void MainWindow::on_tabgrpConversations_currentChanged(int index)
+{
+    ui->lstInConvo->clear();
+
+    indicateChange(index, Qt::black);
+    if(index == 0) return;
+
+    Conversation* lst = convos->at(index-1);
+
+    for (int i = 0; i < lst->count() ; ++i)
+    {
+        Peer* p = lst->at(i);
+        ui->lstInConvo->addItem(p->getName() + "/" + p->getIp());
+    }
+}
+
+/**
+ * Called when user has been added to an existing conversation
+ * between two or more participants. Creates a new tab, and
+ * adds all participants to the corresponding conversation list.
+ * Input format: {convo_id}|{ip}|{name}|{ip}|{name}|...
+ */
+void MainWindow::createExistingConvo(QString data)
+{
+    QStringList stuff = data.split('|', QString::SkipEmptyParts);
+
+    createTab(stuff.at(0), stuff.at(1), stuff.at(2));
+    indicateChange(convos->count());
+    Conversation* newConvo = convos->at(convos->count()-1);
+
+    for (int i = 3; i < stuff.count(); i++)
+    {
+        QString ip = stuff.at(i++); //Separated to avoid possibly undefined behavior.
+        newConvo->add(ip, stuff.at(i));
+    }
+}
+
+/**
+ * Called when context menu on the contact list has been clicked.
+ * Calls methods to respond to clicked action.
+ */
+void MainWindow::contactsMenuClicked(QAction *action)
+{
+    QString sel(ui->lstContacts->selectedItems().at(0)->data(Qt::DisplayRole).toString());
+
+    qDebug() << action->text();
+
+    if(action->text().compare("Add to conversation") == 0) //Add contact to conversation
+    {
+        contextAddToConvo(sel);
+    }
+    if(action->text().compare("Remove") == 0) //Remove contact from list
+    {
+        ui->lstContacts->takeItem(ui->lstContacts->currentRow());
+        controller->removeExtContact(sel);
+    }
+    if(action->text().compare("Block/Unblock") == 0) //Block contact
+    {
+        // Indicate a blocked contact with grey text and strikethrough.
+        QFont f = ui->lstContacts->selectedItems().at(0)->font();
+        if(f.strikeOut())
+        {
+            ui->lstContacts->selectedItems().at(0)->setTextColor(Qt::black);
+            controller->unblockContact(sel);
+        }
+        else
+        {
+            ui->lstContacts->selectedItems().at(0)->setTextColor(Qt::gray);
+            controller->blockContact(sel);
+        }
+        f.setStrikeOut(!f.strikeOut());
+        ui->lstContacts->selectedItems().at(0)->setFont(f);
+    }
+}
+
+// Adds selected participant to a conversation, and notifies participants.
+void MainWindow::contextAddToConvo(QString sel)
+{
+    Conversation* convo = convos->at(ui->tabgrpConversations->currentIndex()-1);
+    if(addToConvo("","",sel, convo->getCid()))
+    {
+        controller->notifyMembersChanged(convo, sel);
+    }
+}
+
+/**
+ * Adds a participant to a convo, if that conversation dont
+ * exist, the tab and convo is created.
+ * fromIp and fromName is the user that added someone to a conversation,
+ * is empty if originating user is the current user.
+ * member is the new participant to be added: {name}/{ip}.
+ * Returns false if member already exists in the conversation, true otherwise.
+ */
+bool MainWindow::addToConvo(QString fromIp, QString fromName, QString member, QString cid)
+{
+    Conversation* lst = 0;
+    QStringList tmp = member.split("/", QString::SkipEmptyParts);
+    int i = 0;
+    for (; i < convos->count(); ++i)
+    {
+        if(convos->at(i)->getCid().compare(cid) == 0)
+        {
+            lst = convos->at(i);
+            break;
+        }
+    }
+
+    if(lst == 0)
+    {
+        createTab(cid, fromIp, fromName);
+        lst = convos->at(convos->count()-1);
+    }
+    else
+    {
+        for (int i = 0; i < lst->count(); ++i)
+        {
+            if(tmp.at(1).compare(lst->at(i)->getIp()) == 0) return false;
+        }
+    }
+
+    lst->add(tmp.at(1), tmp.at(0));
+
+    if(ui->tabgrpConversations->currentIndex() == (i+1))
+        ui->lstInConvo->addItem(member);
+
+    return true;
+}
+
+// Creates a context menu when user right-clicks on a contact.
+void MainWindow::on_lstContacts_customContextMenuRequested(const QPoint &pos)
+{
+    if(ui->lstContacts->selectedItems().count() < 1) return;
+
+    contactsMenu = new QMenu("Context menu", this);
+    QAction* add = new QAction("Add to conversation", this);
+    if(ui->tabgrpConversations->currentIndex() == 0) add->setDisabled(true);
+    contactsMenu->addAction(add);
+    contactsMenu->addAction(new QAction("Remove", this));
+    contactsMenu->addAction(new QAction("Block/Unblock", this));
+    connect(contactsMenu, SIGNAL(triggered(QAction*)), this, SLOT(contactsMenuClicked(QAction*)));
+    contactsMenu->exec(ui->lstContacts->mapToGlobal(pos));
+    contactsMenu->deleteLater();
+}
+
+/**
+ * Called when user presses a button to add a contact.
+ * Prompts user with an input dialog to name his new contact.
+ */
+void MainWindow::on_pushButton_clicked()
+{
+    QString str(ui->addContact->text());
+    QRegularExpression re("^\\d+\\.\\d+\\.\\d+\\.\\d+$");
+    QRegularExpressionMatch match = re.match(str);
+    if(match.hasMatch())
+    {
+        bool ok;
+        QString text = QInputDialog::getText(this, "Name the contact", "Name:", QLineEdit::Normal, str, &ok);
+
+        if (!ok) return;
+
+        QString contact(str + "/" + str);
+        if(!text.isEmpty()) contact = text + "/" + str;
+
+        ui->lstContacts->addItem(contact);
+        controller->addExternalContact(contact);
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Invalid ip");
+        msgBox.setInformativeText("Please provide a valid IPv4 adress");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
+    }
+}
+
+// Destructor
+MainWindow::~MainWindow()
+{
+    delete trayMenu;
+    delete trayIcon;
+    delete smileys;
+    delete ui;
+    delete controller;
+}

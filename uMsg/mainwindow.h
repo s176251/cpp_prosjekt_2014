@@ -61,3 +61,32 @@ public:
 
     void changeEvent(QEvent *e);
     void indicateChange(int index, int flag = 1);
+private:
+    Ui::MainWindow *ui;
+
+    void initializeUiElements();
+    void addTextToConvo(QTextEdit *convo, QString text);
+    void createTab(QString cid, QString ip, QString name);
+    void contextAddToConvo(QString sel);
+    void displayTrayMsg(int index, const QString &text);
+    void openWindow();
+    void createTray();
+private slots:
+    void sendMsg();
+    void closing();
+    void newPrivateConvo();
+    void on_tabgrpConversations_tabCloseRequested(int index);
+    void sendConvoMessage();
+    void on_lstSmileys_doubleClicked(const QModelIndex &index);
+    void on_tabgrpConversations_currentChanged(int index);
+    void on_lstContacts_customContextMenuRequested(const QPoint &pos);
+    void on_pushButton_clicked();
+    void trayActions(QSystemTrayIcon::ActivationReason reason);
+    void trayMessageClicked();
+    void trayMenuClicked(QAction *action);
+    void setNickname();
+    void contactsMenuClicked(QAction *action);
+    void clearTab();
+};
+
+#endif // MAINWINDOW_H
